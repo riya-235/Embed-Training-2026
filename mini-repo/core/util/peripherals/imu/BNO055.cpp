@@ -53,3 +53,34 @@ void BNO055::get_angular_position_quat(IMU::EulerAngles *result){
     memcpy(&result->pitch, &pitch, sizeof(float));
     memcpy(&result->yaw, &yaw, sizeof(float));
 }
+
+void BNO055::get_accel(BNO055_VECTOR_TypeDef *la){
+    if (cantReadDataCount > 0 && cantReadDataCount < 50) {
+        cantReadDataCount++;
+        return;
+    } else if (cantReadDataCount >= 50) {
+        cantReadDataCount = 1;
+    }
+    int16_t x,y,z;
+
+    dt[0] = BNO055_ACCEL_DATA_X_LSB;
+
+    int writeResult = _i2c.write(chip_addr, dt, 1, true);
+    if (!writeResult)  {
+        if (cantReadDataCount > 0) {
+            printf("RESET IMU\n");
+            reset();
+            cantReadDataCount = 0;
+        }
+        _i2c.read(chip_addr, dt, 6, false);
+        x = dt[1] << 8 | dt[0];
+        y = dt[3] << 8 | dt[2];
+        z = dt[5] << 8 | dt[4];
+
+        la->x = (double)x / 100.0f;
+        la->y = (double)y / 100.0f;
+        la->z = (double)z / 100.0f;
+    } else {
+        cantReadDataCount++;
+    }
+}
