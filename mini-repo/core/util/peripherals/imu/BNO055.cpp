@@ -46,14 +46,14 @@ void BNO055::init() noexcept{
     dt[1] = 0x0C;
     _i2c.write(chip_addr, dt, 2, false);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(20)); // 7 ms is minimum time
+    ThisThread::sleep_for(int 20); 
 }
 
 void BNO055::reset() noexcept{
     // hardware reset if pin is connected
     if (_res.is_connected()) {
         _res.write(v:0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1)); // 20ns is minimum time
+        ThisThread::sleep_for(int 1); 
         _res.write(v:1);
     }   
     // software reset if pin is not connected
@@ -62,7 +62,7 @@ void BNO055::reset() noexcept{
         dt[1] = 0x20; 
         _i2c.write(chip_addr, dt, 2, false);
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(700)); // 650ms is minimum time
+    ThisThread::sleep_for(int 700); 
 }
 
 void BNO055::get_accel(BNO055_VECTOR_TypeDef *la){
@@ -134,7 +134,8 @@ void BNO055::change_fusion_mode(uint8_t mode) {
     dt[1] = mode;
 
     _i2c.write(chip_addr, dt, 2, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    ThisThread::sleep_for(int 20); 
+    
 
 }
 
