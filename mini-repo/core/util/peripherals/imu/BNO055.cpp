@@ -36,25 +36,34 @@ BNO055::BNO055(I2C &i2c, uint8_t addr, PinName p_reset) noexcept
 {
 }
 
+/*
+
+int x = 5 
+int ptrX = &x
+
+*/
+
+
+
 void BNO055::init() noexcept{
     reset();
     dt[0] = PWR_MODE;
-    dt[1] = 0x00;
+    dt[1] = 0x00; 
     _i2c.write(chip_addr, dt, 2, false);
 
     dt[0] = OPR_MODE;
     dt[1] = 0x0C;
     _i2c.write(chip_addr, dt, 2, false);
 
-    ThisThread::sleep_for(int 20); 
+    ThisThread::sleep_for(20); 
 }
 
 void BNO055::reset() noexcept{
     // hardware reset if pin is connected
-    if (_res.is_connected()) {
-        _res.write(v:0);
-        ThisThread::sleep_for(int 1); 
-        _res.write(v:1);
+    if (_res != NC) {
+        _res.write(0);
+        ThisThread::sleep_for(1); 
+        _res.write(1);
     }   
     // software reset if pin is not connected
     else {
@@ -62,7 +71,7 @@ void BNO055::reset() noexcept{
         dt[1] = 0x20; 
         _i2c.write(chip_addr, dt, 2, false);
     }
-    ThisThread::sleep_for(int 700); 
+    ThisThread::sleep_for(700); 
 }
 
 void BNO055::get_accel(BNO055_VECTOR_TypeDef *la){
@@ -76,7 +85,7 @@ void BNO055::get_accel(BNO055_VECTOR_TypeDef *la){
 
     dt[0] = BNO055_ACCEL_DATA_X_LSB;
 
-    int writeResult = _i2c.write(chip_addr, dt, 1, true);  // returns 0 if successful, 1 if not
+    int writeResult = _i2c.write(chip_addr, dt, 1, true);  
     // runs if write was successful
     if (!writeResult)  {
         if (cantReadDataCount > 0) {
@@ -85,13 +94,16 @@ void BNO055::get_accel(BNO055_VECTOR_TypeDef *la){
             cantReadDataCount = 0;
         }
         _i2c.read(chip_addr, dt, 6, false);
-        x = dt[1] << 8 | dt[0]; // makes 16 bit number
+        x = dt[1] << 8 | dt[0]; 
         y = dt[3] << 8 | dt[2];
         z = dt[5] << 8 | dt[4];
 
-        la->x = (double)x / 100.0f;
-        la->y = (double)y / 100.0f;
-        la->z = (double)z / 100.0f;
+
+
+        //  static_cast<double>(x/100.0f)
+        la->x = static_cast<double>(x / 100.0f);
+        la->y = static_cast<double>(y / 100.0f);
+        la->z = static_cast<double>(z / 100.0f);
     } else {
         cantReadDataCount++;
     }
@@ -120,9 +132,9 @@ void BNO055::get_gyro(BNO055_VECTOR_TypeDef *gr) {
         y = dt[3] << 8 | dt[2];
         z = dt[5] << 8 | dt[4];
 
-        gr->x = (double)x / 16.0;
-        gr->y = (double)y / 16.0;
-        gr->z = (double)z / 16.0;
+        gr->x = static_cast<double>(x/16.0);
+        gr->y = static_cast<double>(y/16.0);
+        gr->z = static_cast<double>(z/16.0);
     }
     else {
         cantReadDataCount++;
@@ -134,7 +146,7 @@ void BNO055::change_fusion_mode(uint8_t mode) {
     dt[1] = mode;
 
     _i2c.write(chip_addr, dt, 2, false);
-    ThisThread::sleep_for(int 20); 
+    ThisThread::sleep_for(20); 
     
 
 }
@@ -182,9 +194,9 @@ IMU::EulerAngles BNO055::getImuAngles() {
         y = dt[3] << 8 | dt[2];
         z = dt[5] << 8 | dt[4];
 
-        imuAngles.yaw = (double)x / 16.0;
-        imuAngles.roll = (double)y / 16.0;
-        imuAngles.pitch = (double)z / 16.0;
+        imuAngles.yaw = static_cast<double>(x/16.0);
+        imuAngles.roll = static_cast<double>(y/16.0);
+        imuAngles.pitch = static_cast<double>(z/16.0);
     }
     else {
         cantReadDataCount++;
@@ -216,10 +228,10 @@ void BNO055::get_quaternion(BNO055_QUATERNION_TypeDef *result)
         y = dt[5] << 8 | dt[4];
         z = dt[7] << 8 | dt[6];
 
-        result->w = (double)w / 16384.0f;
-        result->x = (double)x / 16384.0f;
-        result->y = (double)y / 16384.0f;
-        result->z = (double)z / 16384.0f;
+        result->w = static_cast<double>(w/16384.0f);
+        result->x = static_cast<double>(x/16384.0f);
+        result->y = static_cast<double>(y/16384.0f);
+        result->z = static_cast<double>(z/16384.0f);
     } else {
         cantReadDataCount++;
     }
